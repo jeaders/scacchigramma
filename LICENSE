@@ -1,0 +1,29 @@
+Scacchigramma
+Copyright © 2026 jeaders — Tutti i diritti riservati / All rights reserved.
+
+ITALIANO
+Questo progetto (codice sorgente, testi, disegni, suoni e immagini) è un'opera
+dell'autore ed è protetto dal diritto d'autore. Nessun permesso viene concesso:
+non è consentito copiare, modificare, distribuire, pubblicare, vendere o creare
+opere derivate da questo codice o dal sito generato, né in tutto né in parte,
+senza autorizzazione scritta del titolare dei diritti.
+
+Il repository è privato e la presenza del codice su GitHub non costituisce
+licenza d'uso. Il gioco pubblicato online è accessibile per giocarci, non per
+riutilizzarne il codice.
+
+Il progetto include componenti di terzi (la libreria di regole scacchistiche,
+i font e le librerie runtime): restano sotto le rispettive licenze, riportate
+per esteso in THIRD-PARTY-NOTICES.md, che va conservato insieme al codice e alla
+versione pubblicata del gioco.
+
+ENGLISH
+All rights reserved. This project (source code, texts, drawings, sounds and
+images) is the author's work and is protected by copyright. No permission is
+granted to copy, modify, distribute, publish, sell or create derivative works
+from this code or from the generated website, in whole or in part, without the
+prior written consent of the copyright holder. Third-party components remain
+under their own licenses, listed in THIRD-PARTY-NOTICES.md.
+
+Per richieste di licenza: aprire una issue nel repository o contattare il
+titolare dei diritti tramite il profilo GitHub @jeaders.

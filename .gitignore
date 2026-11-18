@@ -1,0 +1,25 @@
+# dipendenze: si reinstallano con npm ci
+node_modules/
+
+# build: si rigenera con npm run build
+dist/
+
+# materiali di lavoro (screenshot e prove, non fanno parte del gioco)
+shots/
+
+# dati locali dell'ambiente di sviluppo / anteprima
+.freebuff/
+
+# cache di Vite
+.vite/
+
+# variabili d'ambiente: chiavi e segreti non vanno su GitHub
+.env
+.env.local
+.env.*.local
+
+# file temporanei e di sistema
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
