@@ -240,7 +240,7 @@ export function ControlsCard(props: {
 
       <div className="grid grid-cols-2 gap-2">
         <button className="sketch-btn px-2 py-1.5" onClick={p.onNew}>
-          ↻ Nuova <kbd>K</kbd>
+          ↻ Nuova <kbd>N</kbd>
         </button>
         <button className="sketch-btn px-2 py-1.5" onClick={p.onUndo} disabled={!p.canUndo}>
           ↩ Annulla <kbd>U</kbd>
