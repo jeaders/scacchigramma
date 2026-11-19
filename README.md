@@ -127,6 +127,7 @@ npm run build     # genera dist/index.html autosufficiente
 npm run preview   # lo serve in locale per un controllo finale
 ```
 
+Puoi provare il gioco live su https://alexmirici.netlify.app/ (PC, smartphone, tablet).
 | Comando | Cosa fa |
 |---|---|
 | `npm run dev` | server di sviluppo con ricarica immediata |
@@ -159,7 +160,7 @@ docs/                      banner e screenshot del README
 
 ## Licenza
 
-Codice, testi, disegni e suoni sono **© 2026 jeaders — tutti i diritti riservati**:
+Codice, testi, disegni e suoni sono **Alex Mirici Web Developer — tutti i diritti riservati**:
 vedi [LICENSE](LICENSE). Nessun permesso d'uso è concesso senza autorizzazione scritta.
 
 Il progetto include componenti di terzi con licenze proprie — chess.js (BSD-2-Clause),
