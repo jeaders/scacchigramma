@@ -127,7 +127,7 @@ npm run build     # genera dist/index.html autosufficiente
 npm run preview   # lo serve in locale per un controllo finale
 ```
 
-Puoi provare il gioco live su https://alexmirici.netlify.app/ (PC, smartphone, tablet).
+Puoi provare il gioco live su https://scacchigramma.netlify.app/ (PC, smartphone, tablet).
 | Comando | Cosa fa |
 |---|---|
 | `npm run dev` | server di sviluppo con ricarica immediata |
