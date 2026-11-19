@@ -160,7 +160,7 @@ docs/                      banner e screenshot del README
 
 ## Licenza
 
-Codice, testi, disegni e suoni sono **Alex Mirici Web Developer — tutti i diritti riservati**:
+Codice, testi, disegni e suoni sono **© alex mirici (https://alexmirici.netlify.app) — tutti i diritti riservati**:
 vedi [LICENSE](LICENSE). Nessun permesso d'uso è concesso senza autorizzazione scritta.
 
 Il progetto include componenti di terzi con licenze proprie — chess.js (BSD-2-Clause),
