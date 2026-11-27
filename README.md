@@ -17,6 +17,11 @@
   <img alt="Nessun backend" src="https://img.shields.io/badge/backend-nessuno-2f2a24">
 </p>
 
+<p align="center">
+  <b>▶ Gioca ora: <a href="https://scacchigramma.netlify.app/">scacchigramma.netlify.app</a></b><br>
+  <em>Nessuna installazione, nessun account: si apre e si gioca.</em>
+</p>
+
 ---
 
 ## Che cos'è
@@ -31,7 +36,8 @@ stallo, tripla ripetizione, regola delle 50 mosse), orologi da 10 minuti, due gi
 sullo stesso dispositivo o una CPU con tre livelli.
 
 Funziona su telefono, tablet e desktop, in verticale e in orizzontale, senza installare
-nulla: è una pagina statica, senza backend e senza account.
+nulla: è una pagina statica, senza backend e senza account. Lo stesso pacchetto gira
+anche come gioco HTML5 su itch.io.
 
 ## Le funzioni che non trovi altrove
 
@@ -88,79 +94,30 @@ nulla: è una pagina statica, senza backend e senza account.
 
 - **React 19 + TypeScript**, build con **Vite 7** e Tailwind CSS 4.
 - **Scacchiera in canvas**: griglia, caselle e bordi sono tracciati da una piccola libreria di
-  linee "traballanti" (`src/lib/rough.ts`), i pezzi sono glifi Unicode con ombre, animazioni e
-  particelle d'inchiostro; la lavagna ha polvere di gesso.
+  linee "traballanti", i pezzi sono glifi Unicode con ombre, animazioni e particelle
+  d'inchiostro; la lavagna ha polvere di gesso.
 - **Regole**: [chess.js](https://github.com/jhlywa/chess.js) 1.4 gestisce legalità, scacco matto,
   patta e notazione.
 - **Motore**: minimax con potatura alpha-beta, valutazione materiale + tabelle posizionali e
-  ordinamento delle catture (`src/lib/ai.ts`).
-- **Suoni**: sintetizzati in WebAudio all'istante (`src/lib/sound.ts`) — nessun file audio.
+  ordinamento delle catture.
+- **Suoni**: sintetizzati in WebAudio all'istante — nessun file audio.
 - **Memoria locale**: palmarès, preferenze, record di grafologia in `localStorage`.
-- **Build a file unico**: `vite-plugin-singlefile` incorpora CSS, font e codice in un solo
-  `dist/index.html` (~600 kB), così il gioco funziona anche aperto da disco.
+- **Build a file unico**: CSS, font, icone e codice finiscono in un solo `index.html`
+  (~600 kB), così il gioco funziona anche aperto da disco o incapsulato in un iframe.
 
-## Installazione in locale
+## Codice sorgente
 
-Serve **Node.js 20.19+ oppure 22.12+** (richiesto da Vite 7) e npm.
+Questo repository è la **vetrina del progetto**: testi, screenshot, licenza e note.
+Il **codice sorgente è privato** e non è distribuito né qui né nei file scaricabili.
 
-```bash
-git clone https://github.com/jeaders/scacchigramma.git
-cd scacchigramma
-npm install
-npm run dev
-```
-
-Apri l'indirizzo stampato nel terminale (di solito <http://localhost:5173>).
-
-Per provarlo da smartphone sulla stessa rete:
-
-```bash
-npm run dev -- --host
-```
-
-e apri `http://<ip-del-computer>:5173` dal telefono.
-
-### Build di produzione
-
-```bash
-npm run build     # genera dist/index.html autosufficiente
-npm run preview   # lo serve in locale per un controllo finale
-```
-
-Puoi provare il gioco live su https://scacchigramma.netlify.app/ (PC, smartphone, tablet).
-| Comando | Cosa fa |
-|---|---|
-| `npm run dev` | server di sviluppo con ricarica immediata |
-| `npm run build` | build di produzione in `dist/` |
-| `npm run preview` | anteprima locale della build |
-
-## Struttura del progetto
-
-```text
-src/
-├─ App.tsx                 stato della partita, orologi, revisione, racconto, persistenza
-├─ index.css               temi quaderno/lavagna, layout responsive, animazioni
-├─ components/
-│  ├─ BoardCanvas.tsx      scacchiera disegnata su canvas, animazioni, input touch
-│  ├─ SidePanel.tsx        stato, comandi, storico, quaderno, grafologia, taccuino, palmarès
-│  └─ Overlays.tsx         promozione e fine partita (con salvataggio cartolina)
-├─ lib/
-│  ├─ ai.ts                valutazione e minimax alpha-beta
-│  ├─ calligraphy.ts       firma della partita, voto e tratti della penna
-│  ├─ chessGame.ts         pezzi, glifi, catture, orologio
-│  ├─ commentary.ts        il commento di ogni mossa
-│  ├─ openings.ts          riconoscimento delle aperture
-│  ├─ postcard.ts          disegno e download della cartolina PNG
-│  ├─ rough.ts             tratti "a mano" (rette, rettangoli, cerchi, tratteggi)
-│  ├─ sound.ts             effetti sonori WebAudio
-│  └─ theme.ts             palette dei due fogli
-└─ assets/fonts/           Patrick Hand e Caveat (woff2, OFL)
-docs/                      banner e screenshot del README
-```
+Il gioco pubblicato è una pagina statica autosufficiente, servita su
+[scacchigramma.netlify.app](https://scacchigramma.netlify.app/): puoi usarla, linkarla e
+incorporarla, ma non puoi riutilizzarne il codice. Il pacchetto HTML5 per itch.io è
+descritto in [`itch/ISTRUZIONI-ITCH.md`](itch/ISTRUZIONI-ITCH.md).
 
 ## Licenza
 
-Codice, testi, disegni e suoni sono **© [Alex Mirici](https://alexmirici.netlify.app) Web Developer** — tutti i diritti riservati**:
+Codice, testi, disegni e suoni sono **© [Alex Mirici](https://alexmirici.netlify.app) Web Developer** — tutti i diritti riservati:
 vedi [LICENSE](LICENSE). Nessun permesso d'uso è concesso senza autorizzazione scritta.
 
 Il progetto include componenti di terzi con licenze proprie — chess.js (BSD-2-Clause),

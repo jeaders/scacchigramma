@@ -3,6 +3,10 @@ node_modules/
 
 # build: si rigenera con npm run build
 dist/
+dist-itch/
+
+# pacchetto itch.io generato: si ricrea con npm run build:itch
+itch/*.zip
 
 # materiali di lavoro (screenshot e prove, non fanno parte del gioco)
 shots/

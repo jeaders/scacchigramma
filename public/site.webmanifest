@@ -4,8 +4,8 @@
   "description": "Scacchi disegnati a mano: scacchiera animata, quaderno che racconta ogni mossa e cartolina della partita.",
   "lang": "it",
   "dir": "ltr",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#f2ead9",
@@ -13,13 +13,13 @@
   "categories": ["games", "entertainment"],
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "icon.svg",
       "type": "image/svg+xml",
       "sizes": "any",
       "purpose": "any"
     },
     {
-      "src": "/apple-touch-icon.png",
+      "src": "apple-touch-icon.png",
       "type": "image/png",
       "sizes": "180x180",
       "purpose": "any"
