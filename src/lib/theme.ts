@@ -3,7 +3,6 @@ export type ThemeId = "paper" | "chalk";
 
 export interface Theme {
   id: ThemeId;
-  label: string;
   emoji: string;
   /** sfondo del foglio/lavagna sotto la scacchiera */
   paper: string;
@@ -41,7 +40,6 @@ export interface Theme {
 export const THEMES: Record<ThemeId, Theme> = {
   paper: {
     id: "paper",
-    label: "Quaderno",
     emoji: "✏️",
     paper: "rgba(0,0,0,0)",
     ink: "#2f2a24",
@@ -71,7 +69,6 @@ export const THEMES: Record<ThemeId, Theme> = {
   },
   chalk: {
     id: "chalk",
-    label: "Lavagna",
     emoji: "🧑‍🏫",
     paper: "rgba(0,0,0,0)",
     ink: "rgba(233,240,232,0.85)",

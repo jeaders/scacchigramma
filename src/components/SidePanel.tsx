@@ -4,12 +4,17 @@ import { GLYPH, fmtClock } from "../lib/chessGame";
 import type { ThemeId } from "../lib/theme";
 import { THEMES } from "../lib/theme";
 import { GRADE_EMOJI, type MoveNote } from "../lib/commentary";
-import type { BestPage, PenProfile } from "../lib/calligraphy";
+import { formatVote, type BestPage, type PenProfile } from "../lib/calligraphy";
 import { cn } from "../utils/cn";
+import { useI18n } from "../lib/I18nProvider";
+import type { TranslationKey } from "../lib/i18n";
+
+const DIFF = ["diff.1", "diff.2", "diff.3"] as const;
 
 export interface GameOver {
-  title: string;
-  subtitle: string;
+  titleKey: TranslationKey;
+  subtitleKey: TranslationKey;
+  subtitleParams?: globalThis.Record<string, string | number>;
   winner: Color | null;
 }
 
@@ -70,6 +75,7 @@ export function PlayerChip(props: {
   thinking?: boolean;
 }) {
   const { color, name, clock, active, gameOver, captured, adv, thinking } = props;
+  const { t } = useI18n();
   const opp: Color = color === "w" ? "b" : "w";
   const low = active && !gameOver && clock <= 30000;
   return (
@@ -90,7 +96,7 @@ export function PlayerChip(props: {
         <div className="flex items-baseline justify-between gap-2">
           <span className="player-name font-caveat text-xl font-bold leading-none sm:text-2xl">
             {name}
-            {thinking && <span className="ml-1 text-base opacity-70">sta pensando…</span>}
+            {thinking && <span className="ml-1 text-base opacity-70">{t("side.thinking")}</span>}
           </span>
           <span className={cn("player-clock font-caveat text-xl leading-none tabular-nums sm:text-2xl", low && "clock-low")}>
             {fmtClock(clock)}
@@ -112,9 +118,10 @@ export function PlayerChip(props: {
 
 /* ---------- Barra di valutazione ---------- */
 export function EvalBar({ share }: { share: number }) {
+  const { t } = useI18n();
   const pct = Math.max(0, Math.min(1, share)) * 100;
   return (
-    <div className="eval-bar my-1 flex w-4 shrink-0 flex-col self-stretch sm:w-5" title="Valutazione della posizione">
+    <div className="eval-bar my-1 flex w-4 shrink-0 flex-col self-stretch sm:w-5" title={t("eval.title")}>
       <div className="eval-black w-full" style={{ height: `${100 - pct}%` }} />
       <div className="eval-white w-full" style={{ height: `${pct}%` }} />
     </div>
@@ -122,19 +129,26 @@ export function EvalBar({ share }: { share: number }) {
 }
 
 /* ---------- Stato del turno + timbro dell'apertura ---------- */
-export function StatusCard(props: { turn: Color; inCheck: boolean; gameOver: GameOver | null; opening: string | null; reviewing: boolean }) {
+export function StatusCard(props: {
+  turn: Color;
+  inCheck: boolean;
+  gameOver: GameOver | null;
+  opening: TranslationKey | null;
+  reviewing: boolean;
+}) {
   const { turn, inCheck, gameOver, opening, reviewing } = props;
+  const { t } = useI18n();
   return (
     <div className="sketch-card px-4 py-3" style={{ transform: "rotate(-0.5deg)" }}>
       {gameOver ? (
         <div className="text-center">
-          <div className="font-caveat text-3xl font-bold">{gameOver.title}</div>
-          <div className="opacity-80">{gameOver.subtitle}</div>
+          <div className="font-caveat text-3xl font-bold">{t(gameOver.titleKey)}</div>
+          <div className="opacity-80">{t(gameOver.subtitleKey, gameOver.subtitleParams)}</div>
         </div>
       ) : reviewing ? (
         <div className="text-center">
-          <div className="font-caveat text-3xl font-bold">📖 Revisione</div>
-          <div className="opacity-80">Stai riguardando la partita: torna al presente per continuare.</div>
+          <div className="font-caveat text-3xl font-bold">{t("status.review")}</div>
+          <div className="opacity-80">{t("status.reviewText")}</div>
         </div>
       ) : (
         <>
@@ -142,15 +156,15 @@ export function StatusCard(props: { turn: Color; inCheck: boolean; gameOver: Gam
             <div className="flex items-center gap-2 text-xl">
               <span className="text-3xl">{GLYPH[turn].k}</span>
               <span>
-                Tocca al <b>{turn === "w" ? "Bianco" : "Nero"}</b>
+                {t("status.turnPrefix")}{" "}
+                <b>{t(turn === "w" ? "color.white.short" : "color.black.short")}</b>{" "}
+                {t("status.turnSuffix")}
               </span>
             </div>
-            {inCheck && <span className="sketch-chip clock-low bg-red-100 px-2 py-0.5 font-bold text-pencil-red">⚠ SCACCO!</span>}
+            {inCheck && <span className="sketch-chip clock-low bg-red-100 px-2 py-0.5 font-bold text-pencil-red">{t("status.check")}</span>}
           </div>
           {opening && (
-            <div className="stamp mt-2 inline-block px-2 py-0.5 text-sm font-bold">
-              {opening}
-            </div>
+            <div className="stamp mt-2 inline-block px-2 py-0.5 text-sm font-bold">{t(opening)}</div>
           )}
         </>
       )}
@@ -179,16 +193,17 @@ export function ControlsCard(props: {
   hintBusy?: boolean;
 }) {
   const p = props;
+  const { t } = useI18n();
   return (
     <div className="sketch-card space-y-3 px-4 py-3" style={{ transform: "rotate(0.4deg)" }}>
       <div>
-        <div className="label-hand">Modalità</div>
+        <div className="label-hand">{t("ctrl.mode")}</div>
         <div className="flex gap-2">
           <button className={cn("sketch-btn flex-1 px-2 py-1.5", p.mode === "pvp" && "active")} onClick={() => p.setMode("pvp")}>
-            👥 2 giocatori
+            {t("ctrl.pvp")}
           </button>
           <button className={cn("sketch-btn flex-1 px-2 py-1.5", p.mode === "ai" && "active")} onClick={() => p.setMode("ai")}>
-            🤖 Contro CPU
+            {t("ctrl.ai")}
           </button>
         </div>
       </div>
@@ -196,7 +211,7 @@ export function ControlsCard(props: {
       {p.mode === "ai" && (
         <div className="animate-fade-in space-y-2">
           <div>
-            <div className="label-hand">Difficoltà della CPU</div>
+            <div className="label-hand">{t("ctrl.difficulty")}</div>
             <div className="flex gap-2">
               {([1, 2, 3] as const).map((d) => (
                 <button
@@ -204,19 +219,19 @@ export function ControlsCard(props: {
                   className={cn("sketch-btn flex-1 px-2 py-1 text-sm", p.difficulty === d && "active")}
                   onClick={() => p.setDifficulty(d)}
                 >
-                  {d === 1 ? "😌 Facile" : d === 2 ? "🙂 Media" : "😈 Difficile"}
+                  {t(DIFF[d - 1])}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <div className="label-hand">Tu giochi con</div>
+            <div className="label-hand">{t("ctrl.yourColor")}</div>
             <div className="flex gap-2">
               <button className={cn("sketch-btn flex-1 px-2 py-1 text-sm", p.aiColor === "b" && "active")} onClick={() => p.setAiColor("b")}>
-                ♔ Bianco
+                ♔ {t("color.white.short")}
               </button>
               <button className={cn("sketch-btn flex-1 px-2 py-1 text-sm", p.aiColor === "w" && "active")} onClick={() => p.setAiColor("w")}>
-                ♞ Nero
+                ♞ {t("color.black.short")}
               </button>
             </div>
           </div>
@@ -224,7 +239,7 @@ export function ControlsCard(props: {
       )}
 
       <div>
-        <div className="label-hand">Foglio di disegno</div>
+        <div className="label-hand">{t("ctrl.sheet")}</div>
         <div className="flex gap-2">
           {(Object.keys(THEMES) as ThemeId[]).map((id) => (
             <button
@@ -232,7 +247,7 @@ export function ControlsCard(props: {
               className={cn("sketch-btn flex-1 px-2 py-1.5", p.themeId === id && "active")}
               onClick={() => p.setThemeId(id)}
             >
-              {THEMES[id].emoji} {THEMES[id].label}
+              {THEMES[id].emoji} {t(id === "paper" ? "theme.paper" : "theme.chalk")}
             </button>
           ))}
         </div>
@@ -240,23 +255,29 @@ export function ControlsCard(props: {
 
       <div className="grid grid-cols-2 gap-2">
         <button className="sketch-btn px-2 py-1.5" onClick={p.onNew}>
-          ↻ Nuova <kbd>N</kbd>
+          {t("act.new")} <kbd>N</kbd>
         </button>
         <button className="sketch-btn px-2 py-1.5" onClick={p.onUndo} disabled={!p.canUndo}>
-          ↩ Annulla <kbd>U</kbd>
+          {t("act.undo")} <kbd>U</kbd>
         </button>
         <button className="sketch-btn px-2 py-1.5" onClick={p.onFlip}>
-          ⇅ Ruota <kbd>F</kbd>
+          {t("act.flip")} <kbd>F</kbd>
         </button>
         <button className="sketch-btn px-2 py-1.5" onClick={() => p.setSoundOn((s) => !s)}>
-          {p.soundOn ? "🔊 Suoni on" : "🔇 Suoni off"}
+          {p.soundOn ? t("act.soundOn") : t("act.soundOff")}
         </button>
         <button
           className={cn("sketch-btn hint-btn col-span-2 px-2 py-2 text-lg", !p.hintReady && "opacity-50")}
           onClick={p.onHint}
           disabled={!p.hintReady}
         >
-          {p.hintBusy ? <span className="animate-pulse">🔎 sto scarabocchiando la mossa…</span> : <>💡 Suggeriscimi una mossa <kbd>H</kbd></>}
+          {p.hintBusy ? (
+            <span className="animate-pulse">{t("act.hintBusy")}</span>
+          ) : (
+            <>
+              {t("act.hint")} <kbd>H</kbd>
+            </>
+          )}
         </button>
       </div>
     </div>
@@ -271,6 +292,7 @@ export function HistoryCard(props: {
   hintSan: string | null;
 }) {
   const { history, reviewIndex, onReview, hintSan } = props;
+  const { t } = useI18n();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -283,17 +305,17 @@ export function HistoryCard(props: {
   return (
     <div className="sketch-card px-4 py-3" style={{ transform: "rotate(-0.3deg)" }}>
       <div className="mb-1 flex items-center justify-between">
-        <span className="label-hand mb-0">Mosse ({history.length})</span>
+        <span className="label-hand mb-0">{t("hist.title", { n: history.length })}</span>
         {reviewIndex !== null && (
           <button className="sketch-btn px-2 py-0.5 text-sm" onClick={() => onReview(null)}>
-            ⏵ Torna al presente
+            {t("hist.present")}
           </button>
         )}
       </div>
 
       <div ref={ref} className="nice-scroll max-h-44 overflow-y-auto pr-1">
         {rows.length === 0 ? (
-          <div className="text-sm opacity-60">Nessuna mossa: muove il Bianco!</div>
+          <div className="text-sm opacity-60">{t("hist.empty")}</div>
         ) : (
           <table className="w-full text-left text-lg leading-snug">
             <tbody>
@@ -332,7 +354,7 @@ export function HistoryCard(props: {
           onClick={() => onReview(Math.max(0, (reviewIndex ?? history.length - 1) - 1))}
           disabled={history.length === 0}
         >
-          ◀ Indietro
+          {t("hist.prev")}
         </button>
         <button
           className="sketch-btn flex-1 px-2 py-1"
@@ -342,7 +364,7 @@ export function HistoryCard(props: {
           }}
           disabled={history.length === 0}
         >
-          Avanti ▶
+          {t("hist.next")}
         </button>
       </div>
     </div>
@@ -356,33 +378,34 @@ export function NotebookCard(props: {
   narrating?: boolean;
   onToggleNarrate?: () => void;
 }) {
+  const { t } = useI18n();
   const current = props.reviewIndex !== null ? props.notes[props.reviewIndex] : undefined;
   const shown = props.narrating && current ? [current] : props.notes.slice(-7).reverse();
   return (
     <div className="sketch-card px-4 py-3" style={{ transform: "rotate(0.35deg)" }}>
       <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="label-hand mb-0">Il quaderno racconta</span>
+        <span className="label-hand mb-0">{t("nb.title")}</span>
         <div className="flex items-center gap-1.5">
-          <span className="stamp px-1.5 py-0.5 text-[10px] font-bold">automatico</span>
+          <span className="stamp px-1.5 py-0.5 text-[10px] font-bold">{t("nb.auto")}</span>
           {props.onToggleNarrate && (
             <button
               className={cn("sketch-btn px-2 py-0.5 text-[11px]", props.narrating && "active")}
               onClick={props.onToggleNarrate}
               disabled={props.notes.length === 0}
-              title="Il quaderno legge la partita da solo, mossa per mossa"
+              title={t("nb.attr")}
             >
-              {props.narrating ? "⏹ ferma" : "▶ racconta"}
+              {props.narrating ? t("nb.stop") : t("nb.play")}
             </button>
           )}
         </div>
       </div>
       {props.narrating && (
         <div className="mb-1 text-xs opacity-70">
-          mossa {(props.reviewIndex ?? 0) + 1} di {props.notes.length} · il quaderno legge
+          {t("nb.progress", { i: (props.reviewIndex ?? 0) + 1, n: props.notes.length })}
         </div>
       )}
       {shown.length === 0 ? (
-        <div className="text-sm opacity-60">Muovi un pezzo: qui l'inchiostro commenta la partita, mossa per mossa.</div>
+        <div className="text-sm opacity-60">{t("nb.empty")}</div>
       ) : (
         <ul className="space-y-1.5">
           {shown.map((n) => (
@@ -390,7 +413,8 @@ export function NotebookCard(props: {
               key={n.ply}
               className={cn("notebook-entry", props.reviewIndex !== null && props.reviewIndex + 1 === n.ply && "is-current")}
             >
-              <b className="font-caveat text-xl">{n.san}</b> {GRADE_EMOJI[n.grade]} {n.comment}
+              <b className="font-caveat text-xl">{n.san}</b> {GRADE_EMOJI[n.grade]} {t(n.key)}
+              {n.check ? t("note.checkSuffix") : ""}
             </li>
           ))}
         </ul>
@@ -402,27 +426,28 @@ export function NotebookCard(props: {
 /* ---------- Grafologia dell'inchiostro: come giochi, scritto a mano ---------- */
 export function CalligraphyCard(props: { profile: PenProfile; best: BestPage | null }) {
   const { profile, best } = props;
+  const { t, lang } = useI18n();
   if (profile.score === 0) {
     return (
       <div className="sketch-card px-4 py-3" style={{ transform: "rotate(-0.45deg)" }}>
         <div className="mb-1 flex items-center justify-between gap-2">
-          <span className="label-hand mb-0">Grafologia dell'inchiostro</span>
-          <span className="stamp px-1.5 py-0.5 text-[10px] font-bold">firma</span>
+          <span className="label-hand mb-0">{t("ink.title")}</span>
+          <span className="stamp px-1.5 py-0.5 text-[10px] font-bold">{t("ink.stamp")}</span>
         </div>
-        <div className="text-sm opacity-60">Gioca qualche mossa: qui la penna rivela come giochi.</div>
+        <div className="text-sm opacity-60">{t("ink.empty")}</div>
       </div>
     );
   }
   return (
     <div className="sketch-card px-4 py-3" style={{ transform: "rotate(-0.45deg)" }}>
       <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="label-hand mb-0">Grafologia dell'inchiostro</span>
-        <span className="stamp px-1.5 py-0.5 text-[10px] font-bold">firma</span>
+        <span className="label-hand mb-0">{t("ink.title")}</span>
+        <span className="stamp px-1.5 py-0.5 text-[10px] font-bold">{t("ink.stamp")}</span>
       </div>
       <div className="flex items-end justify-between gap-2">
         <div className="min-w-0">
           <div className="font-caveat text-2xl font-bold leading-tight">«{profile.signature}»</div>
-          <div className="text-sm opacity-75">penna {profile.pen}</div>
+          <div className="text-sm opacity-75">{t("ink.pen", { pen: profile.pen })}</div>
         </div>
         <div className="shrink-0 pl-1 text-right">
           <div className="font-caveat text-4xl font-bold leading-none tabular-nums">{profile.vote}</div>
@@ -442,12 +467,12 @@ export function CalligraphyCard(props: { profile: PenProfile; best: BestPage | n
       </div>
       <div className="mt-2 flex items-center justify-between gap-2 text-xs opacity-70">
         <span className="whitespace-nowrap">
-          ✨ {profile.brillanti} {profile.brillanti === 1 ? "lampo" : "lampi"} · 🩹 {profile.sviste}{" "}
-          {profile.sviste === 1 ? "sbavatura" : "sbavature"}
+          {t(profile.brillanti === 1 ? "ink.sparkOne" : "ink.sparkMany", { n: profile.brillanti })} ·{" "}
+          {t(profile.sviste === 1 ? "ink.blotOne" : "ink.blotMany", { n: profile.sviste })}
         </span>
         {best && (
-          <span className="truncate" title={`«${best.signature}» · ${best.verdict}`}>
-            🏅 record {best.vote}
+          <span className="truncate" title={`«${t(best.signatureKey)}» · ${t(best.verdictKey)}`}>
+            {t("ink.record", { vote: formatVote(best.score, lang) })}
           </span>
         )}
       </div>
@@ -465,22 +490,23 @@ export function StatsCard(props: {
   heatOn: boolean;
   onToggleHeat: () => void;
 }) {
+  const { t } = useI18n();
   const items = [
-    { k: props.moves === 1 ? "Mossa" : "Mosse", v: props.moves },
-    { k: props.captures === 1 ? "Cattura" : "Catture", v: props.captures },
-    { k: props.castles === 1 ? "Arrocco" : "Arrocchi", v: props.castles },
-    { k: props.promotions === 1 ? "Promozione" : "Promozioni", v: props.promotions },
+    { k: t(props.moves === 1 ? "stats.moveOne" : "stats.moves"), v: props.moves },
+    { k: t(props.captures === 1 ? "stats.captureOne" : "stats.captures"), v: props.captures },
+    { k: t(props.castles === 1 ? "stats.castleOne" : "stats.castles"), v: props.castles },
+    { k: t(props.promotions === 1 ? "stats.promotionOne" : "stats.promotions"), v: props.promotions },
   ];
   return (
     <div className="sketch-card px-4 py-3" style={{ transform: "rotate(0.5deg)" }}>
       <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="label-hand mb-0">Taccuino della partita</span>
+        <span className="label-hand mb-0">{t("stats.title")}</span>
         <button
           className={cn("sketch-btn px-2 py-0.5 text-[11px]", props.heatOn && "active")}
           onClick={props.onToggleHeat}
-          title="Dove si è giocato di più: le case più battute si riempiono di tratteggio"
+          title={t("stats.heatAttr")}
         >
-          🗺 inchiostro
+          {t("stats.heat")}
         </button>
       </div>
       <div className="grid grid-cols-4 gap-1 text-center">
@@ -491,22 +517,25 @@ export function StatsCard(props: {
           </div>
         ))}
       </div>
-      <div className="mt-1 text-center text-sm opacity-70">⏱ {fmtClock(props.elapsed)} di gioco</div>
+      <div className="mt-1 text-center text-sm opacity-70">
+        {t("stats.elapsed", { time: fmtClock(props.elapsed) })}
+      </div>
     </div>
   );
 }
 
 /* ---------- Palmarès persistente ---------- */
 export function RecordCard({ record, onReset }: { record: Record; onReset: () => void }) {
+  const { t } = useI18n();
   const aiTot = record.aiWins + record.aiLosses + record.aiDraws;
   return (
     <div className="sketch-card px-4 py-3" style={{ transform: "rotate(-0.4deg)" }}>
-      <div className="label-hand">Palmarès (salvato nel browser)</div>
+      <div className="label-hand">{t("rec.title")}</div>
       <div className="space-y-1 text-sm">
         <div className="flex items-center justify-between">
-          <span>🤖 Contro la CPU</span>
+          <span>{t("rec.vsCpu")}</span>
           <span className="font-caveat text-xl font-bold">
-            {record.aiWins}V · {record.aiLosses}S · {record.aiDraws}P
+            {t("rec.line", { wins: record.aiWins, losses: record.aiLosses, draws: record.aiDraws })}
           </span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full border border-[var(--color-ink)]/40">
@@ -516,14 +545,14 @@ export function RecordCard({ record, onReset }: { record: Record; onReset: () =>
           />
         </div>
         <div className="flex items-center justify-between">
-          <span>👥 2 giocatori</span>
+          <span>{t("rec.pvp")}</span>
           <span className="font-caveat text-xl font-bold">
             ♔{record.whiteWins} · ♞{record.blackWins} · 🤝{record.pvpDraws}
           </span>
         </div>
       </div>
       <button className="sketch-btn mt-2 w-full px-2 py-0.5 text-sm" onClick={onReset}>
-        ✕ Azzera il palmarès
+        {t("rec.reset")}
       </button>
     </div>
   );

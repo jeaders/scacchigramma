@@ -1,4 +1,5 @@
 import type { Move } from "chess.js";
+import type { TranslationKey } from "./i18n";
 
 /** Qualità di una mossa, stimata dal guadagno/perdita di valutazione. */
 export type Grade = "brillante" | "buona" | "naturale" | "avventata" | "svista";
@@ -7,8 +8,10 @@ export interface MoveNote {
   /** numero progressivo della semimossa (1 = prima mossa del Bianco) */
   ply: number;
   san: string;
-  /** commento senza la notazione, pronto da mostrare dopo la mossa */
-  comment: string;
+  /** chiave del commento nel dizionario: il testo si traduce al momento di mostrarlo */
+  key: TranslationKey;
+  /** vero se va aggiunto il suffisso di scacco */
+  check: boolean;
   grade: Grade;
 }
 
@@ -19,8 +22,6 @@ export const GRADE_EMOJI: Record<Grade, string> = {
   avventata: "😬",
   svista: "🩹",
 };
-
-const CHECK_SUFFIX = " Scacco!";
 
 /**
  * Trasforma una mossa giocata in una riga del quaderno.
@@ -41,21 +42,17 @@ export function noteMove(move: Move, evalBefore: number, evalAfter: number, ply:
   else if (gain > -140) grade = "avventata";
   else grade = "svista";
 
-  let comment: string;
-  if (isMate) comment = "scacco matto: la partita si chiude con una firma.";
-  else if (move.isEnPassant()) comment = "en passant, il pedone passa di lato come un fantasma.";
-  else if (move.promotion) comment = "il pedone corona il suo sogno e diventa un pezzo nuovo.";
-  else if (move.isKingsideCastle() || move.isQueensideCastle())
-    comment = "il re si mette al sicuro e la torre entra in gioco.";
-  else if (move.captured === "q") comment = "si porta a casa la donna: che morso.";
-  else if (grade === "brillante")
-    comment = move.captured ? "cattura e guadagno: colpo da copertina." : "colpo da copertina, l'inchiostro si accende.";
-  else if (grade === "buona") comment = move.captured ? "scambio favorevole, la matita non trema." : "mossa precisa, la matita non trema.";
-  else if (grade === "naturale") comment = "si continua a scrivere la partita.";
-  else if (grade === "avventata") comment = "un po' avventata: qui la matita scivola.";
-  else comment = "svista! Meglio tornare sulla riga.";
+  let key: TranslationKey;
+  if (isMate) key = "note.mate";
+  else if (move.isEnPassant()) key = "note.enPassant";
+  else if (move.promotion) key = "note.promotion";
+  else if (move.isKingsideCastle() || move.isQueensideCastle()) key = "note.castle";
+  else if (move.captured === "q") key = "note.queen";
+  else if (grade === "brillante") key = move.captured ? "note.brilliantCapture" : "note.brilliant";
+  else if (grade === "buona") key = move.captured ? "note.goodCapture" : "note.good";
+  else if (grade === "naturale") key = "note.natural";
+  else if (grade === "avventata") key = "note.rash";
+  else key = "note.blunder";
 
-  if (isCheck && !isMate && grade !== "brillante") comment += CHECK_SUFFIX;
-
-  return { ply, san: move.san, comment, grade };
+  return { ply, san: move.san, key, check: isCheck && !isMate && grade !== "brillante", grade };
 }

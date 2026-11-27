@@ -1,5 +1,6 @@
 import type { Move } from "chess.js";
 import type { MoveNote } from "./commentary";
+import { translate, type Lang, type TranslationKey } from "./i18n";
 
 /** I quattro tratti della scrittura, letti dallo stile di gioco. */
 export type PenDimension = "precisione" | "fiamma" | "calma" | "fantasia";
@@ -13,9 +14,13 @@ export interface PenBar {
 export interface PenProfile {
   /** nome poetico della partita, come lo scriverebbe il quaderno */
   signature: string;
+  /** chiave della firma: serve a conservarla traducibile nel record */
+  signatureKey: TranslationKey;
+  /** chiave del giudizio: serve a conservarlo traducibile nel record */
+  verdictKey: TranslationKey;
   /** voto in calligrafia, 0–100 */
   score: number;
-  /** voto leggibile, es. "7,4" */
+  /** voto leggibile, es. "7,4" (7.4 in inglese) */
   vote: string;
   verdict: string;
   /** descrizione breve della mano: "precisa e fantasiosa" */
@@ -27,44 +32,48 @@ export interface PenProfile {
 
 export interface BestPage {
   score: number;
-  vote: string;
-  signature: string;
-  verdict: string;
+  /** firma e giudizio restano chiavi, così il record segue la lingua scelta */
+  signatureKey: TranslationKey;
+  verdictKey: TranslationKey;
   at: string;
+}
+
+/** Voto in calligrafia leggibile: «7,4» in italiano, «7.4» in inglese. */
+export function formatVote(score: number, lang: Lang): string {
+  const decimals = (score / 10).toFixed(1);
+  return lang === "it" ? decimals.replace(".", ",") : decimals;
 }
 
 const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v)));
 
-const DIM_LABEL: Record<PenDimension, string> = {
-  precisione: "Precisione",
-  fiamma: "Fiamma",
-  calma: "Calma",
-  fantasia: "Fantasia",
+const DIM_KEY: Record<PenDimension, TranslationKey> = {
+  precisione: "ink.dim.precision",
+  fiamma: "ink.dim.flame",
+  calma: "ink.dim.calm",
+  fantasia: "ink.dim.flair",
 };
 
-const DIM_ADJ: Record<PenDimension, string> = {
-  precisione: "precisa",
-  fiamma: "ardente",
-  calma: "paziente",
-  fantasia: "fantasiosa",
+const DIM_ADJ: Record<PenDimension, TranslationKey> = {
+  precisione: "ink.adj.precise",
+  fiamma: "ink.adj.ardent",
+  calma: "ink.adj.patient",
+  fantasia: "ink.adj.flair",
 };
 
-function verdictOf(score: number): string {
-  if (score >= 80) return "pagina da rilegare";
-  if (score >= 65) return "bella pagina";
-  if (score >= 48) return "pagina ordinata";
-  if (score >= 32) return "foglio stropicciato";
-  return "bozza da rifare";
+const VERDICT: [number, TranslationKey][] = [
+  [80, "ink.verdict.bind"],
+  [65, "ink.verdict.beautiful"],
+  [48, "ink.verdict.tidy"],
+  [32, "ink.verdict.crumpled"],
+  [0, "ink.verdict.draft"],
+];
+
+function verdictKey(score: number): TranslationKey {
+  return VERDICT.find(([min]) => score >= min)![1];
 }
 
-const EMPTY_BARS: PenBar[] = (Object.keys(DIM_LABEL) as PenDimension[]).map((id) => ({
-  id,
-  label: DIM_LABEL[id],
-  value: 0,
-}));
-
 /** Nome poetico della partita, scelto da ciò che è successo sulla scacchiera. */
-function signatureOf(input: {
+function signatureKey(input: {
   moves: number;
   mate: boolean;
   draw: boolean;
@@ -73,18 +82,18 @@ function signatureOf(input: {
   captures: number;
   brillanti: number;
   enPassant: number;
-}): string {
+}): TranslationKey {
   const { moves, mate, draw, castles, promotions, captures, brillanti, enPassant } = input;
-  if (mate) return "la partita della firma finale";
-  if (promotions > 0) return "la partita del pedone incoronato";
-  if (enPassant > 0) return "la partita del fantasma";
-  if (captures >= 8) return "la partita delle mille puntine";
-  if (brillanti >= 3) return "la partita delle stelle";
-  if (castles >= 2) return "la partita dei due castelli";
-  if (moves >= 60) return "la partita lunga come un tema";
-  if (draw) return "la partita del pari e patta";
-  if (moves <= 10) return "la partita lampo";
-  return "la partita del quaderno nuovo";
+  if (mate) return "ink.sign.mate";
+  if (promotions > 0) return "ink.sign.crowned";
+  if (enPassant > 0) return "ink.sign.ghost";
+  if (captures >= 8) return "ink.sign.pins";
+  if (brillanti >= 3) return "ink.sign.stars";
+  if (castles >= 2) return "ink.sign.castles";
+  if (moves >= 60) return "ink.sign.long";
+  if (draw) return "ink.sign.draw";
+  if (moves <= 10) return "ink.sign.blitz";
+  return "ink.sign.fresh";
 }
 
 /**
@@ -102,17 +111,28 @@ export function penProfile(input: {
   elapsedMs: number;
   mate: boolean;
   draw: boolean;
+  lang: Lang;
 }): PenProfile {
-  const { notes, history, moves, castles, promotions, captures, elapsedMs, mate, draw } = input;
+  const { notes, history, moves, castles, promotions, captures, elapsedMs, mate, draw, lang } = input;
+  const tr = (key: TranslationKey, params?: Record<string, string | number>) => translate(lang, key, params);
+
+  const barsOf = (values: Record<PenDimension, number>): PenBar[] =>
+    (Object.keys(DIM_KEY) as PenDimension[]).map((id) => ({
+      id,
+      label: tr(DIM_KEY[id]),
+      value: values[id],
+    }));
 
   if (!moves) {
     return {
-      signature: "pagina ancora bianca",
+      signature: tr("ink.blank"),
+      signatureKey: "ink.blank",
+      verdictKey: "ink.blank",
       score: 0,
       vote: "—",
-      verdict: "pagina ancora bianca",
-      pen: "inchiostro ancora nella penna",
-      bars: EMPTY_BARS,
+      verdict: tr("ink.blank"),
+      pen: tr("ink.penEmpty"),
+      bars: barsOf({ precisione: 0, fiamma: 0, calma: 0, fantasia: 0 }),
       brillanti: 0,
       sviste: 0,
     };
@@ -135,25 +155,24 @@ export function penProfile(input: {
   const score = Math.round(
     precisione * 0.42 + fiamma * 0.18 + calma * 0.14 + fantasia * 0.26 + (mate ? 6 : 0),
   );
-  const vote = (score / 10).toFixed(1).replace(".", ",");
+  const vote = formatVote(score, lang);
+  const pageSignature = signatureKey({ moves, mate, draw, castles, promotions, captures, brillanti, enPassant });
+  const pageVerdict = verdictKey(score);
 
-  const bars: PenBar[] = [
-    { id: "precisione", label: DIM_LABEL.precisione, value: precisione },
-    { id: "fiamma", label: DIM_LABEL.fiamma, value: fiamma },
-    { id: "calma", label: DIM_LABEL.calma, value: calma },
-    { id: "fantasia", label: DIM_LABEL.fantasia, value: fantasia },
-  ];
+  const bars = barsOf({ precisione, fiamma, calma, fantasia });
 
   const top = [...bars].sort((a, b) => b.value - a.value).slice(0, 2);
-  let pen = `${DIM_ADJ[top[0].id]} e ${DIM_ADJ[top[1].id]}`;
-  if (moves <= 8) pen += ", di poche righe";
-  else if (sviste > 0) pen += ", con qualche sbavatura";
+  let pen = tr("ink.join", { a: tr(DIM_ADJ[top[0].id]), b: tr(DIM_ADJ[top[1].id]) });
+  if (moves <= 8) pen += tr("ink.fewLines");
+  else if (sviste > 0) pen += tr("ink.smudges");
 
   return {
-    signature: signatureOf({ moves, mate, draw, castles, promotions, captures, brillanti, enPassant }),
+    signature: tr(pageSignature),
+    signatureKey: pageSignature,
+    verdictKey: pageVerdict,
     score,
     vote,
-    verdict: verdictOf(score),
+    verdict: tr(pageVerdict),
     pen,
     bars,
     brillanti,

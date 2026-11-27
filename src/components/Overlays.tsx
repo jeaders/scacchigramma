@@ -1,10 +1,13 @@
 import { useMemo } from "react";
 import type { Color, PieceSymbol } from "../lib/chessGame";
 import { GLYPH } from "../lib/chessGame";
+import { useI18n } from "../lib/I18nProvider";
+import type { TranslationKey } from "../lib/i18n";
 
 export interface GameOverInfo {
-  title: string;
-  subtitle: string;
+  titleKey: TranslationKey;
+  subtitleKey: TranslationKey;
+  subtitleParams?: Record<string, string | number>;
   winner: Color | null;
 }
 
@@ -14,12 +17,13 @@ export function PromotionDialog(props: {
   onPick: (p: PieceSymbol) => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   const opts: PieceSymbol[] = ["q", "r", "b", "n"];
   return (
     <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center p-3" style={{ background: "var(--veil)" }}>
       <div className="sketch-card animate-pop max-h-[88dvh] overflow-y-auto px-4 py-4 text-center sm:px-6 sm:py-5">
-        <div className="font-caveat text-3xl font-bold sm:text-4xl">Promozione! ✨</div>
-        <div className="mb-3 text-sm opacity-75 sm:text-base">Il pedone diventa…</div>
+        <div className="font-caveat text-3xl font-bold sm:text-4xl">{t("promo.title")}</div>
+        <div className="mb-3 text-sm opacity-75 sm:text-base">{t("promo.text")}</div>
         <div className="flex justify-center gap-2 sm:gap-3">
           {opts.map((p) => (
             <button
@@ -32,7 +36,7 @@ export function PromotionDialog(props: {
           ))}
         </div>
         <button className="sketch-btn mt-4 px-3 py-1 text-sm" onClick={props.onCancel}>
-          Annulla
+          {t("common.cancel")}
         </button>
       </div>
     </div>
@@ -91,6 +95,7 @@ export function GameOverModal(props: {
   themeId?: string;
   onPostcard?: () => void;
 }) {
+  const { t } = useI18n();
   const { over, onNew, onClose, themeId = "paper", onPostcard } = props;
   return (
     <>
@@ -100,14 +105,16 @@ export function GameOverModal(props: {
           <div className="animate-bounce-soft text-6xl leading-none sm:text-7xl">
             {over.winner ? GLYPH[over.winner].k : "🤝"}
           </div>
-          <div className="mt-3 font-caveat text-4xl font-bold leading-none sm:text-5xl">{over.title}</div>
-          <div className="mt-2 text-base opacity-80 sm:text-lg">{over.subtitle}</div>
+          <div className="mt-3 font-caveat text-4xl font-bold leading-none sm:text-5xl">{t(over.titleKey)}</div>
+          <div className="mt-2 text-base opacity-80 sm:text-lg">
+            {t(over.subtitleKey, over.subtitleParams)}
+          </div>
           <div className="mt-5 flex flex-wrap justify-center gap-2.5">
             <button className="sketch-btn active px-4 py-2 text-base sm:text-lg" onClick={onNew}>
-              ↻ Nuova partita
+              {t("over.new")}
             </button>
             <button className="sketch-btn px-4 py-2 text-base sm:text-lg" onClick={onClose}>
-              Guarda la scacchiera
+              {t("over.look")}
             </button>
           </div>
           {onPostcard && (
@@ -116,11 +123,9 @@ export function GameOverModal(props: {
                 className="sketch-btn mt-2.5 w-full bg-[var(--color-highlight)] px-3 py-2 text-sm font-bold text-[#2f2a24]"
                 onClick={onPostcard}
               >
-                📮 Salva la cartolina della partita
+                {t("over.postcard")}
               </button>
-              <div className="mt-1 text-[11px] opacity-60">
-                un'immagine PNG disegnata a mano, con la posizione finale e i numeri della partita
-              </div>
+              <div className="mt-1 text-[11px] opacity-60">{t("over.postcardNote")}</div>
             </>
           )}
         </div>

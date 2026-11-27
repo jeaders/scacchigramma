@@ -1,5 +1,5 @@
 Scacchigramma
-Copyright © 2026 [Alex Mirici](https://scacchigramma.netlify.app) Web Developer — Tutti i diritti riservati / All rights reserved.
+Copyright © 2026 Alex Mirici (https://alexmirici.netlify.app) Web Developer — Tutti i diritti riservati / All rights reserved.
 
 ITALIANO
 Questo progetto (codice sorgente, testi, disegni, suoni e immagini) è un'opera
@@ -8,9 +8,12 @@ non è consentito copiare, modificare, distribuire, pubblicare, vendere o creare
 opere derivate da questo codice o dal sito generato, né in tutto né in parte,
 senza autorizzazione scritta del titolare dei diritti.
 
-Il repository è privato e la presenza del codice su GitHub non costituisce
-licenza d'uso. Il gioco pubblicato online è accessibile per giocarci, non per
-riutilizzarne il codice.
+Il codice sorgente è pubblicato nel repository GitHub del progetto, che è
+pubblico: la sua presenza lì serve a mostrare il lavoro e ad alimentare il
+deploy automatico, e non costituisce licenza d'uso né concede alcun permesso.
+Il gioco pubblicato online è accessibile per giocarci, non per riutilizzarne il
+codice; le build distribuite (sito e pacchetto HTML5) restano coperte da questa
+licenza.
 
 Il progetto include componenti di terzi (la libreria di regole scacchistiche,
 i font e le librerie runtime): restano sotto le rispettive licenze, riportate

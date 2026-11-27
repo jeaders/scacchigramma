@@ -23,14 +23,15 @@ import { setSoundEnabled, sfx } from "./lib/sound";
 import { noteMove, type MoveNote } from "./lib/commentary";
 import { downloadPostcard, type PostcardData } from "./lib/postcard";
 import { penProfile, type BestPage } from "./lib/calligraphy";
+import { useI18n } from "./lib/I18nProvider";
 
 const CLOCK_MS = 10 * 60 * 1000;
 const RECORD_KEY = "scacchigramma-record-v1";
 const PREF_KEY = "scacchigramma-prefs-v1";
-const BEST_KEY = "scacchigramma-best-v1";
+const BEST_KEY = "scacchigramma-best-v2";
 const LEGACY_RECORD_KEY = "penna-palmares-v1";
 const LEGACY_PREF_KEY = "penna-prefs-v1";
-const DIFFICULTY_LABEL = ["facile", "media", "difficile"] as const;
+const DIFFICULTY_LOW = ["diff.easy", "diff.medium", "diff.hard"] as const;
 
 type Mode = "pvp" | "ai";
 interface Hint {
@@ -40,8 +41,6 @@ interface Hint {
 }
 
 const EMPTY_RECORD: Palmares = { aiWins: 0, aiLosses: 0, aiDraws: 0, whiteWins: 0, blackWins: 0, pvpDraws: 0 };
-
-const fmtScore = (cp: number) => `${cp >= 0 ? "+" : "−"}${(Math.abs(cp) / 100).toFixed(1)} pedoni`;
 
 function loadRecord(): Palmares {
   for (const key of [RECORD_KEY, "cartaere-record-v1", "foglio64-record-v1", "pennematto-record-v1", LEGACY_RECORD_KEY]) {
@@ -92,6 +91,11 @@ function AmbientDoodles({ themeId }: { themeId: ThemeId }) {
 }
 
 export default function App() {
+  const { t, lang, toggleLang } = useI18n();
+  // i callback memorizzati leggono la traduzione corrente da qui
+  const tRef = useRef(t);
+  tRef.current = t;
+
   const gameRef = useRef<Chess>(new Chess());
   const [pieces, setPieces] = useState<PieceState[]>(() => initialPieces());
   const stackRef = useRef<PieceState[][]>([]);
@@ -172,6 +176,11 @@ export default function App() {
     }
   }, [themeId, soundOn]);
   useEffect(() => setSoundEnabled(soundOn), [soundOn]);
+
+  // il titolo della scheda segue la lingua: nel pacchetto itch.io serve il titolo inglese
+  useEffect(() => {
+    document.title = t("meta.title");
+  }, [t]);
 
   // il body segue il tema (serve per l'overscroll su mobile)
   useEffect(() => {
@@ -274,9 +283,10 @@ export default function App() {
         elapsedMs: stats.elapsed,
         mate: g.isCheckmate(),
         draw: !!gameOver && !gameOver.winner,
+        lang,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [notes, historyVerbose, stats, gameOver],
+    [notes, historyVerbose, stats, gameOver, lang],
   );
 
   /* ---------- mappa dell'inchiostro: case più battute ---------- */
@@ -291,15 +301,20 @@ export default function App() {
 
   const computeOver = (): GameOverInfo | null => {
     const gg = gameRef.current;
+    const tr = tRef.current;
+    const side = (c: Color) => tr(c === "w" ? "side.white" : "side.black");
     if (gg.isCheckmate()) {
       const winner: Color = gg.turn() === "w" ? "b" : "w";
-      return { title: "Scacco matto! ♛", subtitle: `Vince ${winner === "w" ? "il Bianco ♔" : "il Nero ♞"}`, winner };
+      return { titleKey: "over.mate", subtitleKey: "over.wins", subtitleParams: { side: side(winner) }, winner };
     }
-    if (gg.isStalemate()) return { title: "Patta — stallo 🤝", subtitle: "Il re non può muoversi senza andare in scacco", winner: null };
-    if (gg.isInsufficientMaterial()) return { title: "Patta 🤝", subtitle: "Materiale insufficiente per dare matto", winner: null };
-    if (gg.isThreefoldRepetition()) return { title: "Patta 🤝", subtitle: "Posizione ripetuta tre volte", winner: null };
-    if (gg.isDrawByFiftyMoves()) return { title: "Patta 🤝", subtitle: "Regola delle cinquanta mosse", winner: null };
-    if (gg.isDraw()) return { title: "Patta 🤝", subtitle: "Partita terminata in pareggio", winner: null };
+    if (gg.isStalemate())
+      return { titleKey: "over.stalemate", subtitleKey: "over.stalemateText", winner: null };
+    if (gg.isInsufficientMaterial())
+      return { titleKey: "over.draw", subtitleKey: "over.insufficient", winner: null };
+    if (gg.isThreefoldRepetition())
+      return { titleKey: "over.draw", subtitleKey: "over.repetition", winner: null };
+    if (gg.isDrawByFiftyMoves()) return { titleKey: "over.draw", subtitleKey: "over.fifty", winner: null };
+    if (gg.isDraw()) return { titleKey: "over.draw", subtitleKey: "over.drawText", winner: null };
     return null;
   };
 
@@ -377,18 +392,22 @@ export default function App() {
   /* ---------- suggerimento del motore ---------- */
   const applyHint = useCallback((info: HintInfo) => {
     const mv = info.move;
+    const tr = tRef.current;
+    const score = tr("score.pawns", {
+      score: `${info.score >= 0 ? "+" : "−"}${(Math.abs(info.score) / 100).toFixed(1)}`,
+    });
     let comment: string;
     if (info.mate) {
-      comment = "matto forzato: chiudi la partita! ✨";
+      comment = tr("hint.mate");
     } else {
       const probe = new Chess(gameRef.current.fen());
       probe.move(mv);
-      if (probe.isCheckmate()) comment = "scacco matto in una mossa! ✨";
-      else if (mv.captured === "q") comment = "si porta a casa la Donna 👑";
-      else if (mv.captured === "r" || mv.captured === "n" || mv.captured === "b") comment = "guadagna materiale 💰";
-      else if (info.margin > 120) comment = `nettamente la migliore (${fmtScore(info.score)}) 📈`;
-      else if (probe.isCheck()) comment = "scacco, e tiene l'iniziativa ⚡";
-      else comment = `la più solida (${fmtScore(info.score)})`;
+      if (probe.isCheckmate()) comment = tr("hint.mateIn1");
+      else if (mv.captured === "q") comment = tr("hint.queen");
+      else if (mv.captured === "r" || mv.captured === "n" || mv.captured === "b") comment = tr("hint.material");
+      else if (info.margin > 120) comment = tr("hint.best", { score });
+      else if (probe.isCheck()) comment = tr("hint.check");
+      else comment = tr("hint.solid", { score });
     }
     setHint({ arrow: { from: mv.from, to: mv.to }, san: mv.san, comment });
     if (soundRef.current) sfx.hint();
@@ -439,8 +458,9 @@ export default function App() {
       const loser: Color = clocks.w <= 0 ? "w" : "b";
       const winner: Color = loser === "w" ? "b" : "w";
       setGameOver({
-        title: "Tempo scaduto! ⏱",
-        subtitle: `Vince ${winner === "w" ? "il Bianco ♔" : "il Nero ♞"}`,
+        titleKey: "over.time",
+        subtitleKey: "over.wins",
+        subtitleParams: { side: tRef.current(winner === "w" ? "side.white" : "side.black") },
         winner,
       });
       if (soundRef.current) sfx.lose();
@@ -587,9 +607,8 @@ export default function App() {
     if (best && profile.score <= best.score) return;
     const page: BestPage = {
       score: profile.score,
-      vote: profile.vote,
-      signature: profile.signature,
-      verdict: profile.verdict,
+      signatureKey: profile.signatureKey,
+      verdictKey: profile.verdictKey,
       at: new Date().toISOString(),
     };
     setBest(page);
@@ -603,13 +622,13 @@ export default function App() {
 
   /* ---------- cartolina della partita ---------- */
   const buildPostcard = (): PostcardData => ({
-    resultTitle: gameOver?.title ?? "Partita",
-    resultSubtitle: gameOver?.subtitle ?? "",
+    resultTitle: gameOver ? t(gameOver.titleKey) : t("over.game"),
+    resultSubtitle: gameOver ? t(gameOver.subtitleKey, gameOver.subtitleParams) : "",
     modeLabel:
       mode === "ai"
-        ? `contro la CPU · livello ${DIFFICULTY_LABEL[difficulty - 1]}`
-        : "due giocatori, un solo quaderno",
-    opening,
+        ? t("postcard.modeCpu", { level: t(DIFFICULTY_LOW[difficulty - 1]) })
+        : t("postcard.modePvp"),
+    opening: opening ? t(opening) : null,
     moves: historySan.length,
     captures: stats.captures,
     castles: stats.castles,
@@ -619,6 +638,7 @@ export default function App() {
     vote: profile.vote,
     pieces,
     themeId,
+    lang,
     finishedAt: new Date(),
   });
 
@@ -652,7 +672,11 @@ export default function App() {
   const topColor: Color = orientation === "w" ? "b" : "w";
   const bottomColor: Color = orientation;
   const nameOf = (c: Color) =>
-    mode === "ai" ? (c === aiColor ? "CPU 🤖" : "Tu 🙋") : c === "w" ? "Bianco ♔" : "Nero ♞";
+    mode === "ai"
+      ? c === aiColor
+        ? t("name.cpu")
+        : t("name.you")
+      : t(c === "w" ? "color.white" : "color.black");
   const aiThinking = mode === "ai" && !gameOver && !reviewing && turn === aiColor;
   const nextTheme: ThemeId = themeId === "paper" ? "chalk" : "paper";
 
@@ -679,10 +703,11 @@ export default function App() {
             <p className="game-tagline mt-1 max-w-md text-sm opacity-75 sm:text-lg">
               {opening ? (
                 <>
-                  Apertura riconosciuta: <b>{opening}</b>
+                  {t("app.openingPrefix")}
+                  <b>{t(opening)}</b>
                 </>
               ) : (
-                <>Scacchi a penna: la scacchiera si disegna, il quaderno racconta.</>
+                t("app.tagline")
               )}
             </p>
           </div>
@@ -690,12 +715,20 @@ export default function App() {
             <button
               className="sketch-btn px-3 py-1.5"
               onClick={() => changeTheme(nextTheme)}
-              title="Cambia foglio (T)"
+              title={t("aria.theme")}
             >
-              {themeId === "paper" ? "🧑‍🏫 Lavagna" : "✏️ Quaderno"}
+              {THEMES[nextTheme].emoji} {t(nextTheme === "paper" ? "theme.paper" : "theme.chalk")}
             </button>
-            <button className="sketch-btn px-3 py-1.5" onClick={() => setSoundOn((s) => !s)} title="Suoni">
+            <button className="sketch-btn px-3 py-1.5" onClick={() => setSoundOn((s) => !s)} title={t("app.sound")}>
               {soundOn ? "🔊" : "🔇"}
+            </button>
+            <button
+              className="sketch-btn px-2 py-1.5 text-sm sm:px-3"
+              onClick={toggleLang}
+              title={t("lang.switch")}
+              aria-label={t("aria.lang")}
+            >
+              {lang === "it" ? "🇮🇹 IT" : "🇬🇧 EN"}
             </button>
             <div className="sketch-chip px-3 py-1.5 text-sm">
               🏆 <b>{record.aiWins}</b>/<b>{record.aiLosses}</b> vs CPU
@@ -751,7 +784,7 @@ export default function App() {
               <div className="hint-note animate-pop px-4 py-2">
                 💡 <b>{hint.san}</b> — {hint.comment}
                 <button className="ml-2 underline opacity-70 hover:opacity-100" onClick={() => setHint(null)}>
-                  nascondi
+                  {t("app.hide")}
                 </button>
               </div>
             )}
@@ -822,19 +855,15 @@ export default function App() {
             </Reveal>
             <Reveal delay={340} className="hidden min-[920px]:block">
               <div className="sketch-card px-4 py-2 text-sm opacity-75" style={{ transform: "rotate(0.3deg)" }}>
-                <b>Scorciatoie:</b> <kbd>H</kbd> suggerimento · <kbd>U</kbd> annulla · <kbd>F</kbd> ruota ·{" "}
-                <kbd>N</kbd> nuova · <kbd>T</kbd> tema · <kbd>M</kbd> mappa · <kbd>←</kbd>/<kbd>→</kbd> revisione ·{" "}
-                <kbd>Esc</kbd> esce
+                <b>{t("app.shortcuts")}:</b> <kbd>H</kbd> {t("sc.hint")} · <kbd>U</kbd> {t("sc.undo")} ·{" "}
+                <kbd>F</kbd> {t("sc.flip")} · <kbd>N</kbd> {t("sc.new")} · <kbd>T</kbd> {t("sc.theme")} ·{" "}
+                <kbd>M</kbd> {t("sc.map")} · <kbd>←</kbd>/<kbd>→</kbd> {t("sc.review")} · <kbd>Esc</kbd> {t("sc.exit")}
               </div>
             </Reveal>
           </aside>
         </main>
 
-        <footer className="mt-8 text-center text-xs opacity-55 sm:text-sm">
-          Scacchigramma · regole complete (arrocco, en passant, promozione, 50 mosse, tripla ripetizione) · motore minimax
-          con alpha-beta · orologi da 10 minuti · quaderno narrante, racconto automatico, cartolina della partita, mappa
-          dell'inchiostro e grafologia della penna
-        </footer>
+        <footer className="mt-8 text-center text-xs opacity-55 sm:text-sm">{t("app.footer")}</footer>
       </div>
 
       {/* barra dei comandi per smartphone: sempre sotto il pollice */}
@@ -843,30 +872,30 @@ export default function App() {
           className="sketch-btn bar-btn"
           onClick={onHint}
           disabled={!interactive || hintBusy}
-          aria-label="Suggerisci una mossa"
+          aria-label={t("aria.hint")}
         >
-          💡<span>Suggerisci</span>
+          💡<span>{t("act.hintShort")}</span>
         </button>
         <button
           className="sketch-btn bar-btn"
           onClick={undo}
           disabled={!stackRef.current.length || reviewing}
-          aria-label="Annulla l'ultima mossa"
+          aria-label={t("aria.undo")}
         >
-          ↩<span>Annulla</span>
+          ↩<span>{t("act.undoShort")}</span>
         </button>
-        <button className="sketch-btn bar-btn" onClick={newGame} aria-label="Nuova partita">
-          ↻<span>Nuova</span>
+        <button className="sketch-btn bar-btn" onClick={newGame} aria-label={t("aria.new")}>
+          ↻<span>{t("act.newShort")}</span>
         </button>
-        <button className="sketch-btn bar-btn" onClick={flip} aria-label="Ruota la scacchiera">
-          ⇅<span>Ruota</span>
+        <button className="sketch-btn bar-btn" onClick={flip} aria-label={t("aria.flip")}>
+          ⇅<span>{t("act.flipShort")}</span>
         </button>
         <button
           className="sketch-btn bar-btn"
           onClick={() => changeTheme(nextTheme)}
-          aria-label="Cambia foglio"
+          aria-label={t("aria.sheet")}
         >
-          🎨<span>Foglio</span>
+          🎨<span>{t("act.sheetShort")}</span>
         </button>
       </div>
 

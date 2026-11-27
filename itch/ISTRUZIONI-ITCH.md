@@ -6,8 +6,13 @@ Il gioco è un `index.html` autosufficiente: per itch.io serve uno ZIP con
 ## 1. Rigenerare il pacchetto
 
 ```bash
-npm run build:itch          # crea dist-itch/ con percorsi relativi (./)
+npm run build:itch          # crea dist-itch/ con percorsi relativi (./) e inglese come lingua iniziale
 ```
+
+La build usa `--mode itch`: percorsi relativi e **inglese come lingua predefinita**, così
+il gioco è leggibile da chiunque arrivi da itch.io. Lo switch `IT / EN` in testata cambia
+lingua in qualsiasi momento e la scelta resta salvata nel browser; per aprire il gioco
+direttamente in italiano basta aggiungere `?lang=it` all'URL dell'embed.
 
 Poi comprimi il contenuto della cartella, non la cartella:
 
@@ -46,9 +51,10 @@ Controllo rapido: nel ZIP devono comparire `index.html`, `icon.svg`,
 5. **Screenshots**: carica `docs/phone-game.png`, `docs/panel.png` e
    `docs/cartolina.png`.
 6. **Genre**: *Strategy* / *Board Game*; **Tags**: `chess`, `board-game`,
-   `2-players`, `pixel-art` solo se pertinente, `hand-drawn`, `italian`.
-7. **Pricing**: *No payments*.
-8. Salva come **Draft**, prova l'embed in *Preview*, poi pubblica.
+   `2-players`, `hand-drawn`, `english`, `italian`.
+7. **Language**: *English*, *Italian* (il gioco parte in inglese, lo switch IT/EN è in testata).
+8. **Pricing**: *No payments*.
+9. Salva come **Draft**, prova l'embed in *Preview*, poi pubblica.
 
 ## 3. Comportamento dentro l'iframe
 

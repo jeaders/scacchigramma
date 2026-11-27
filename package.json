@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:itch": "vite build --base=./ --outDir=dist-itch",
+    "build:itch": "vite build --base=./ --outDir=dist-itch --mode itch",
     "preview": "vite preview"
   },
   "dependencies": {

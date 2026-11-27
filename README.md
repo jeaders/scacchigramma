@@ -39,6 +39,10 @@ Funziona su telefono, tablet e desktop, in verticale e in orizzontale, senza ins
 nulla: è una pagina statica, senza backend e senza account. Lo stesso pacchetto gira
 anche come gioco HTML5 su itch.io.
 
+L'interfaccia è **bilingue, italiano e inglese**, con lo switch `IT / EN` in testata:
+la lingua scelta resta memorizzata nel browser. La versione web parte in italiano, il
+pacchetto per itch.io parte in inglese (`?lang=it` per aprirlo in italiano).
+
 ## Le funzioni che non trovi altrove
 
 | | |
@@ -74,7 +78,7 @@ anche come gioco HTML5 su itch.io.
 
 - **Mosso**: tocca un pezzo — le case legali si illuminano — poi tocca la destinazione. Funziona anche il trascinamento.
 - **Modalità**: due giocatori sullo stesso schermo, oppure contro la CPU (facile / media / difficile) scegliendo il colore.
-- **Comandi**: Nuova partita, Annulla (anche a partita finita), Ruota la scacchiera, Suggerimento, Suoni e cambio foglio (Quaderno ✏️ / Lavagna 🧑‍🏫).
+- **Comandi**: Nuova partita, Annulla (anche a partita finita), Ruota la scacchiera, Suoni, lingua (`IT / EN`) e cambio foglio (Quaderno ✏️ / Lavagna 🧑‍🏫).
 - **Revisione**: tocca una mossa nello storico per rivedere la posizione; `←` e `→` scorrono la partita.
 
 ### Scorciatoie da tastiera
@@ -101,14 +105,20 @@ anche come gioco HTML5 su itch.io.
 - **Motore**: minimax con potatura alpha-beta, valutazione materiale + tabelle posizionali e
   ordinamento delle catture.
 - **Suoni**: sintetizzati in WebAudio all'istante — nessun file audio.
+- **Lingue**: tutti i testi passano da un dizionario IT/EN in `src/lib/i18n.ts`;
+  la lingua predefinita è iniettata dalla build (italiano sul sito, inglese su itch.io),
+  la scelta dell'utente resta in `localStorage` e si può forzare con `?lang=it` / `?lang=en`.
 - **Memoria locale**: palmarès, preferenze, record di grafologia in `localStorage`.
 - **Build a file unico**: CSS, font, icone e codice finiscono in un solo `index.html`
   (~600 kB), così il gioco funziona anche aperto da disco o incapsulato in un iframe.
 
 ## Codice sorgente
 
-Questo repository è la **vetrina del progetto**: testi, screenshot, licenza e note.
-Il **codice sorgente è privato** e non è distribuito né qui né nei file scaricabili.
+Questo repository è **pubblico e contiene il codice sorgente** del gioco, ma il progetto
+**non è open source**: il repository serve a mostrare com'è fatto il gioco e ad
+alimentare il deploy automatico su Netlify. La presenza del codice qui non concede alcun
+permesso: copia, ridistribuzione, riutilizzo e opere derivate richiedono un'autorizzazione
+scritta (vedi [LICENSE](LICENSE)).
 
 Il gioco pubblicato è una pagina statica autosufficiente, servita su
 [scacchigramma.netlify.app](https://scacchigramma.netlify.app/): puoi usarla, linkarla e

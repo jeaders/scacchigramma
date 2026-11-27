@@ -1,6 +1,7 @@
 import { FILES, GLYPH, type PieceState } from "./chessGame";
 import { hatchRect, rng, wobblyLine, wobblyRect } from "./rough";
 import { THEMES, type ThemeId } from "./theme";
+import { translate, type Lang, type TranslationKey } from "./i18n";
 
 export interface PostcardData {
   resultTitle: string;
@@ -18,6 +19,8 @@ export interface PostcardData {
   vote: string;
   pieces: PieceState[];
   themeId: ThemeId;
+  /** lingua dei testi stampati sulla cartolina */
+  lang: Lang;
   finishedAt: Date;
 }
 
@@ -121,7 +124,8 @@ function drawBoard(ctx: CanvasRenderingContext2D, pieces: PieceState[], themeId:
   }
 }
 
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+const count = (lang: Lang, n: number, one: TranslationKey, many: TranslationKey) =>
+  `${n} ${translate(lang, n === 1 ? one : many)}`;
 
 function drawPostcard(ctx: CanvasRenderingContext2D, data: PostcardData) {
   const isChalk = data.themeId === "chalk";
@@ -173,11 +177,11 @@ function drawPostcard(ctx: CanvasRenderingContext2D, data: PostcardData) {
   wobblyLine(ctx, 292, 206, 788, 202, { seed: 21, amp: 5, color: red, width: 5 });
   ctx.font = `400 32px ${HAND}`;
   ctx.fillStyle = soft;
-  ctx.fillText("scacchi a penna · cartolina della partita", W / 2, 248);
+  ctx.fillText(translate(data.lang, "postcard.subtitle"), W / 2, 248);
 
   ctx.fillStyle = ink;
   ctx.font = `700 66px ${CAVEAT}`;
-  ctx.fillText(plain(data.resultTitle) || "Partita", W / 2, 342);
+  ctx.fillText(plain(data.resultTitle) || translate(data.lang, "over.game"), W / 2, 342);
   ctx.font = `400 33px ${HAND}`;
   ctx.fillStyle = soft;
   ctx.fillText(plain(data.resultSubtitle), W / 2, 390);
@@ -193,7 +197,7 @@ function drawPostcard(ctx: CanvasRenderingContext2D, data: PostcardData) {
   if (data.opening) {
     ctx.font = `400 32px ${HAND}`;
     ctx.fillStyle = blue;
-    ctx.fillText(`Apertura: ${plain(data.opening)}`, W / 2, y);
+    ctx.fillText(translate(data.lang, "postcard.opening", { name: plain(data.opening) }), W / 2, y);
     y += 44;
   }
 
@@ -201,11 +205,11 @@ function drawPostcard(ctx: CanvasRenderingContext2D, data: PostcardData) {
   ctx.fillStyle = soft;
   ctx.fillText(
     [
-      plural(data.moves, "mossa", "mosse"),
-      plural(data.captures, "cattura", "catture"),
-      plural(data.castles, "arrocco", "arrocchi"),
-      plural(data.promotions, "promozione", "promozioni"),
-      plural(data.brilliant, "lampo", "lampi"),
+      count(data.lang, data.moves, "unit.moveOne", "unit.moves"),
+      count(data.lang, data.captures, "unit.captureOne", "unit.captures"),
+      count(data.lang, data.castles, "unit.castleOne", "unit.castles"),
+      count(data.lang, data.promotions, "unit.promotionOne", "unit.promotions"),
+      count(data.lang, data.brilliant, "unit.sparkOne", "unit.sparks"),
     ].join(" · "),
     W / 2,
     y,
@@ -217,13 +221,17 @@ function drawPostcard(ctx: CanvasRenderingContext2D, data: PostcardData) {
     ctx.fillText(plain(`«${data.signature}» · ${data.vote}/10`), W / 2, y + 50);
   }
 
-  const dateLabel = data.finishedAt.toLocaleDateString("it-IT", { day: "2-digit", month: "long", year: "numeric" });
+  const dateLabel = data.finishedAt.toLocaleDateString(data.lang === "it" ? "it-IT" : "en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
   ctx.font = `400 30px ${HAND}`;
   ctx.fillStyle = soft;
   ctx.textAlign = "left";
   ctx.fillText(dateLabel, 118, 1214);
   ctx.textAlign = "right";
-  ctx.fillText("firma", W - 150, 1206);
+  ctx.fillText(translate(data.lang, "postcard.signature"), W - 150, 1206);
   wobblyLine(ctx, W - 300, 1224, W - 110, 1220, {
     seed: 77,
     amp: 2.5,
@@ -234,7 +242,7 @@ function drawPostcard(ctx: CanvasRenderingContext2D, data: PostcardData) {
   ctx.textAlign = "center";
   ctx.font = `400 26px ${HAND}`;
   ctx.fillStyle = isChalk ? "rgba(233,240,232,0.45)" : "rgba(47,42,36,0.45)";
-  ctx.fillText("Scacchigramma · scarabocchiato a mano nel browser", W / 2, 1276);
+  ctx.fillText(translate(data.lang, "postcard.footer"), W / 2, 1276);
 }
 
 /** Disegna la cartolina e ne restituisce il PNG come blob. */

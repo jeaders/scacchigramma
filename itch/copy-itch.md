@@ -68,4 +68,4 @@ la partita.</p>
 | Tags | `chess`, `board-game`, `hand-drawn`, `2-players`, `strategy`, `italian` |
 | Pricing | No payments |
 | Release status | Released |
-| Language | Italian (aggiungi English se vuoi la pagina bilingue) |
+| Language | English, Italian — il gioco parte in inglese, lo switch IT/EN è in testata |
