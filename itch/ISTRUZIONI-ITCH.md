@@ -15,11 +15,12 @@ Poi comprimi il contenuto della cartella, non la cartella:
 python3 - <<'PY'
 import os, zipfile
 root = "dist-itch"
-with zipfile.ZipFile("itch/scacchigramma-itch.zip", "w", zipfile.ZIP_DEFLATED) as z:
-    for base, _, files in os.walk(root):
-        for f in files:
-            p = os.path.join(base, f)
-            z.write(p, os.path.relpath(p, root))
+# solo ciò che serve al gioco: evita di caricare su itch.io le immagini social,
+# robots.txt e la sitemap pensati per il sito
+keep = ["index.html", "icon.svg", "apple-touch-icon.png", "site.webmanifest"]
+with zipfile.ZipFile("itch/scacchigramma-itch.zip", "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+    for f in keep:
+        z.write(os.path.join(root, f), f)
 print("ok")
 PY
 ```
@@ -49,7 +50,22 @@ Controllo rapido: nel ZIP devono comparire `index.html`, `icon.svg`,
 7. **Pricing**: *No payments*.
 8. Salva come **Draft**, prova l'embed in *Preview*, poi pubblica.
 
-## 3. Da verificare una volta pubblicato
+## 3. Comportamento dentro l'iframe
+
+itch.io incapsula il gioco in un iframe senza scorrimento esterno. La build
+riconosce di girare in un iframe (`is-embedded`) e si adatta:
+
+- la pagina scorre **dentro** il foglio, così nulla resta irraggiungibile;
+- da 920px in su il pannello delle impostazioni ha uno scorrimento proprio e
+  resta visibile accanto alla scacchiera;
+- con finestre basse la testata si compatta, la tagline sparisce e la
+  scacchiera si ridimensiona per entrare in altezza;
+- il footer lungo viene nascosto (non aggiunge informazioni giocando).
+
+Verificato a 1280×720, 960×600, 1280×800 e 430×700: scacchiera intera,
+controlli e impostazioni raggiungibili in tutti i casi.
+
+## 4. Da verificare una volta pubblicato
 
 - La scacchiera si vede subito e la pagina non scrolla orizzontalmente nell'iframe.
 - I suoni partono solo dopo il primo tocco (vincolo dei browser sulle WebAudio).

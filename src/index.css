@@ -115,6 +115,23 @@ body {
   z-index: 1;
 }
 
+/* dentro un iframe la pagina non può scorrere all'esterno (itch.io usa
+   iframe senza scroll): lo scorrimento si porta dentro il foglio */
+.is-embedded .page-root {
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+/* nell'iframe il footer non serve e creerebbe un secondo scorrimento */
+.is-embedded .app-shell footer {
+  display: none;
+}
+.is-embedded .app-shell {
+  padding-bottom: 1rem;
+}
+
 /* ---------- card e bottoni "disegnati" ---------- */
 .sketch-card {
   background: var(--color-card);
@@ -603,6 +620,21 @@ kbd {
     width: 21rem;
     max-width: 21rem;
     flex: 0 0 auto;
+    /* pannello con scorrimento proprio: le impostazioni restano raggiungibili
+       anche quando la finestra è bassa (iframe, portatili piccoli) */
+    max-height: calc(100dvh - 5.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 0.2rem;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-ink) 35%, transparent) transparent;
+  }
+  .side-col::-webkit-scrollbar {
+    width: 6px;
+  }
+  .side-col::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-ink) 35%, transparent);
+    border-radius: 6px;
   }
   .mobile-bar {
     display: none;
@@ -669,6 +701,34 @@ kbd {
   }
   .eval-bar {
     width: 0.7rem;
+  }
+}
+
+/* finestre basse (iframe itch.io a 1280×720, portatili): testata compatta */
+@media (min-width: 920px) and (max-height: 860px) {
+  .app-shell {
+    padding-top: 0.45rem;
+  }
+  .app-shell header {
+    margin-bottom: 0.35rem;
+  }
+  .game-title {
+    font-size: clamp(1.9rem, 3vw, 2.7rem);
+  }
+  .game-tagline,
+  .squiggle {
+    display: none;
+  }
+  .game-main {
+    gap: 1rem;
+  }
+  .board-col {
+    gap: 0.45rem;
+    max-width: min(640px, calc(100dvh - 200px));
+  }
+  .side-col {
+    gap: 0.6rem;
+    max-height: calc(100dvh - 4.2rem);
   }
 }
 
