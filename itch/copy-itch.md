@@ -10,13 +10,13 @@ la descrizione lunga lì, itch.io rifiuta il salvataggio con
 Scacchigramma — scacchi a penna
 ```
 
-## Short description — italiano (115 caratteri)
+## Short description — italiano (114 caratteri)
 
 ```
 Scacchi a penna: ogni partita diventa una pagina di quaderno con commenti, voto in calligrafia e cartolina finale.
 ```
 
-## Short description — inglese (100 caratteri)
+## Short description — inglese (102 caratteri)
 
 ```
 Hand-drawn chess: each game becomes a notebook page with commentary, calligraphy grade and a postcard.
